@@ -1,0 +1,1130 @@
+# -*- coding: utf-8 -*-
+"""Configuration field metadata registry.
+
+This module is the single source of truth for configuration UI metadata,
+validation hints, and category grouping.
+"""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from typing import Any, Dict, List, Optional
+
+from src.config import AGENT_MAX_STEPS_DEFAULT
+
+SCHEMA_VERSION = "2026-03-29"
+
+_CATEGORY_DEFINITIONS: List[Dict[str, Any]] = [
+    {
+        "category": "base",
+        "title": "Base Settings",
+        "description": "Watchlist and foundational application settings.",
+        "display_order": 10,
+    },
+    {
+        "category": "ai_model",
+        "title": "AI Model",
+        "description": "Model providers, model names, and inference parameters.",
+        "display_order": 20,
+    },
+    {
+        "category": "analysis",
+        "title": "Analysis Report",
+        "description": "Report format, language, rendering, and quality controls.",
+        "display_order": 25,
+    },
+    {
+        "category": "data_source",
+        "title": "Data Source",
+        "description": "Market data provider credentials and priority settings.",
+        "display_order": 30,
+    },
+    {
+        "category": "system",
+        "title": "System",
+        "description": "Runtime and scheduling controls.",
+        "display_order": 50,
+    },
+    {
+        "category": "agent",
+        "title": "Agent",
+        "description": "Agent mode and strategy-skill settings.",
+        "display_order": 55,
+    },
+    {
+        "category": "uncategorized",
+        "title": "Uncategorized",
+        "description": "Keys not mapped in the field registry.",
+        "display_order": 99,
+    },
+]
+
+_FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
+    "STOCK_LIST": {
+        "title": "Stock List",
+        "description": "Comma-separated watchlist stock codes.",
+        "category": "base",
+        "data_type": "array",
+        "ui_control": "textarea",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "600519,300750,002594",
+        "options": [],
+        "validation": {"min_items": 1},
+        "display_order": 10,
+    },
+    # ------------------------------------------------------------------
+    # AI Model – LiteLLM unified config
+    # ------------------------------------------------------------------
+    "LITELLM_MODEL": {
+        "title": "Primary Model",
+        "description": "Primary model in provider/model format (e.g. gemini/gemini-3-flash-preview, deepseek/deepseek-v4-flash, anthropic/claude-3-5-sonnet-20241022). If empty, it is auto-inferred from available API keys or channel declarations.",
+        "category": "ai_model",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 1,
+    },
+    "AGENT_LITELLM_MODEL": {
+        "title": "Agent Primary Model",
+        "description": "Optional Agent-only primary model in provider/model format. When empty, Agent inherits the primary model. Bare model names are normalized to openai/<model>.",
+        "category": "ai_model",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 2,
+    },
+    "LITELLM_FALLBACK_MODELS": {
+        "title": "Fallback Models",
+        "description": "Comma-separated fallback models tried when the primary model fails (e.g. anthropic/claude-3-5-sonnet-20241022,openai/gpt-4o-mini). Useful for cross-provider redundancy.",
+        "category": "ai_model",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 2,
+    },
+    # ------------------------------------------------------------------
+    # AI Model – Multi-channel LLM configuration
+    # ------------------------------------------------------------------
+    "LLM_CHANNELS": {
+        "title": "LLM Channels",
+        "description": "Channel names (comma-separated). Managed by the channel editor above.",
+        "category": "ai_model",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 4,
+    },
+    "LLM_TEMPERATURE": {
+        "title": "Temperature",
+        "description": "Unified sampling temperature for all LLM calls. Range [0.0, 2.0], default 0.7.",
+        "category": "ai_model",
+        "data_type": "number",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "0.7",
+        "options": [],
+        "validation": {"min": 0.0, "max": 2.0},
+        "display_order": 5,
+    },
+    "TUSHARE_TOKEN": {
+        "title": "Tushare Token",
+        "description": "Token for Tushare Pro API.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 10,
+    },
+    "TICKFLOW_API_KEY": {
+        "title": "TickFlow API Key",
+        "description": "API key for TickFlow market review enhancement (A-share indices, plus market stats when universe queries are enabled).",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 15,
+    },
+    "REALTIME_SOURCE_PRIORITY": {
+        "title": "Realtime Source Priority",
+        "description": "Comma-separated priority for realtime quote providers.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "tencent,akshare_sina,efinance,akshare_em",
+        "options": [],
+        "validation": {},
+        "display_order": 20,
+    },
+    "ENABLE_REALTIME_TECHNICAL_INDICATORS": {
+        "title": "Realtime Technical Indicators",
+        "description": "Use intraday realtime price for MA5/MA10/MA20 and trend analysis (Issue #234). Disable to use yesterday close.",
+        "category": "data_source",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 21,
+    },
+    "ANSPIRE_API_KEYS": {
+        "title": "Anspire API Keys",
+        "description": "Comma-separated Anspire Search API keys.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 22,
+    },
+    "TAVILY_API_KEYS": {
+        "title": "Tavily API Keys",
+        "description": "Comma-separated Tavily API keys.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 30,
+    },
+    "SERPAPI_API_KEYS": {
+        "title": "SerpAPI Keys",
+        "description": "Comma-separated SerpAPI keys.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 40,
+    },
+    "BRAVE_API_KEYS": {
+        "title": "Brave API Keys",
+        "description": "Comma-separated Brave Search API keys.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 50,
+    },
+    "BOCHA_API_KEYS": {
+        "title": "Bocha API Keys",
+        "description": "Comma-separated Bocha Search API keys.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 51,
+    },
+    "MINIMAX_API_KEYS": {
+        "title": "MiniMax API Key",
+        "description": "MiniMax API key (search priority: Bocha > Tavily > Brave > SerpAPI > MiniMax > SearXNG).",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {"multi_value": True, "delimiter": ","},
+        "display_order": 53,
+    },
+    "SEARXNG_BASE_URLS": {
+        "title": "SearXNG Base URLs",
+        "description": "Comma-separated SearXNG instance URLs (self-hosted, no quota). Enable format: json in settings.yml.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {
+            "multi_value": True,
+            "delimiter": ",",
+            "item_type": "url",
+            "allowed_schemes": ["http", "https"],
+        },
+        "display_order": 52,
+    },
+    "SEARXNG_PUBLIC_INSTANCES_ENABLED": {
+        "title": "SearXNG Public Instances",
+        "description": "Auto-discover public SearXNG instances from searx.space when SEARXNG_BASE_URLS is empty. Default: true; set false to disable.",
+        "category": "data_source",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 53,
+    },
+    "ENABLE_REALTIME_QUOTE": {
+        "title": "Enable Realtime Quote",
+        "description": "Enable realtime market quotes. Disable to only use historical close prices.",
+        "category": "data_source",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 22,
+    },
+    "ENABLE_CHIP_DISTRIBUTION": {
+        "title": "Enable Chip Distribution",
+        "description": "Enable chip distribution analysis. May be unstable; recommended to disable on cloud deployments.",
+        "category": "data_source",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 23,
+    },
+    "NEWS_MAX_AGE_DAYS": {
+        "title": "News Max Age (Days)",
+        "description": "Maximum age of news in days. Older articles are excluded from analysis context.",
+        "category": "data_source",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "3",
+        "options": [],
+        "validation": {"min": 1, "max": 30},
+        "display_order": 60,
+    },
+    "NEWS_STRATEGY_PROFILE": {
+        "title": "News Strategy Profile",
+        "description": "News window profile: ultra_short(1d), short(3d), medium(7d), long(30d). Effective window = min(profile, NEWS_MAX_AGE_DAYS).",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "short",
+        "options": ["ultra_short", "short", "medium", "long"],
+        "validation": {"enum": ["ultra_short", "short", "medium", "long"]},
+        "display_order": 61,
+    },
+    "BIAS_THRESHOLD": {
+        "title": "Bias Threshold (%)",
+        "description": "Deviation threshold from MA5 (%). Exceeding this triggers 'do not chase' warning. Strong trend stocks auto-widen to 1.5x.",
+        "category": "data_source",
+        "data_type": "number",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "5.0",
+        "options": [],
+        "validation": {"min": 0.0, "max": 50.0},
+        "display_order": 62,
+    },
+    "PYTDX_HOST": {
+        "title": "Pytdx Host",
+        "description": "Tongdaxin data server IP. Used with PYTDX_PORT. Overrides built-in defaults.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 55,
+    },
+    "PYTDX_PORT": {
+        "title": "Pytdx Port",
+        "description": "Tongdaxin data server port (e.g. 7709). Used with PYTDX_HOST.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 56,
+    },
+    "PYTDX_SERVERS": {
+        "title": "Pytdx Servers",
+        "description": "Comma-separated ip:port (e.g. 192.168.1.1:7709,10.0.0.1:7709). Overrides PYTDX_HOST+PYTDX_PORT.",
+        "category": "data_source",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 57,
+    },
+    "REPORT_TYPE": {
+        "title": "Report Type",
+        "description": "Report format: 'simple' (concise), 'full' (detailed), or 'brief' (3-5 sentences).",
+        "category": "analysis",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "simple",
+        "options": ["simple", "full", "brief"],
+        "validation": {"enum": ["simple", "full", "brief"]},
+        "display_order": 55,
+    },
+    "REPORT_LANGUAGE": {
+        "title": "Report Language",
+        "description": "Default output language for analysis reports. Supported values: zh, en.",
+        "category": "analysis",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "zh",
+        "options": [
+            {"label": "Chinese", "value": "zh"},
+            {"label": "English", "value": "en"},
+        ],
+        "validation": {"enum": ["zh", "en"]},
+        "display_order": 56,
+    },
+    "REPORT_TEMPLATES_DIR": {
+        "title": "Report Templates Dir",
+        "description": "Directory for Jinja2 report templates (relative to project root).",
+        "category": "analysis",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "templates",
+        "options": [],
+        "validation": {},
+        "display_order": 57,
+    },
+    "REPORT_RENDERER_ENABLED": {
+        "title": "Report Renderer Enabled",
+        "description": "Enable Jinja2 template rendering for reports. Default false for zero regression.",
+        "category": "analysis",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 58,
+    },
+    "REPORT_INTEGRITY_ENABLED": {
+        "title": "Report Integrity Enabled",
+        "description": "Validate mandatory report fields after LLM output; retry or placeholder on missing.",
+        "category": "analysis",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 58,
+    },
+    "REPORT_INTEGRITY_RETRY": {
+        "title": "Report Integrity Retry",
+        "description": "Retry count when mandatory fields missing (0 = placeholder only, no retry).",
+        "category": "analysis",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "1",
+        "options": [],
+        "validation": {"min": 0, "max": 3},
+        "display_order": 59,
+    },
+    "REPORT_HISTORY_COMPARE_N": {
+        "title": "Report History Compare N",
+        "description": "Show last N analyses signal comparison per stock (0 = disabled).",
+        "category": "analysis",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "0",
+        "options": [],
+        "validation": {"min": 0, "max": 10},
+        "display_order": 60,
+    },
+    "SCHEDULE_TIME": {
+        "title": "Schedule Time",
+        "description": "Daily schedule time in HH:MM format.",
+        "category": "system",
+        "data_type": "time",
+        "ui_control": "time",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "18:00",
+        "options": [],
+        "validation": {"pattern": r"^([01]\d|2[0-3]):[0-5]\d$"},
+        "display_order": 10,
+    },
+    "HTTP_PROXY": {
+        "title": "HTTP Proxy",
+        "description": "Optional HTTP proxy endpoint.",
+        "category": "system",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 20,
+    },
+    "LOG_LEVEL": {
+        "title": "Log Level",
+        "description": "Application log level.",
+        "category": "system",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "INFO",
+        "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        "validation": {"enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]},
+        "display_order": 30,
+    },
+    "WEBUI_PORT": {
+        "title": "Web UI Port",
+        "description": "Port for Web UI service.",
+        "category": "system",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "8000",
+        "options": [],
+        "validation": {"min": 1, "max": 65535},
+        "display_order": 40,
+    },
+    "RUN_IMMEDIATELY": {
+        "title": "Run Immediately",
+        "description": "Whether to run analysis immediately on startup (non-schedule mode).",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 45,
+    },
+    "SCHEDULE_ENABLED": {
+        "title": "Schedule Enabled",
+        "description": "Enable daily scheduled analysis run.",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 8,
+    },
+    "SCHEDULE_RUN_IMMEDIATELY": {
+        "title": "Schedule Run Immediately",
+        "description": "Whether to run one analysis immediately on startup in schedule mode.",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 11,
+    },
+    "TRADING_DAY_CHECK_ENABLED": {
+        "title": "Trading Day Check",
+        "description": "Skip analysis on non-trading days. Set to false or use --force-run to override.",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 12,
+    },
+    "MARKET_REVIEW_ENABLED": {
+        "title": "Market Review Enabled",
+        "description": "Enable market overview/review in analysis reports.",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 46,
+    },
+    "MARKET_REVIEW_REGION": {
+        "title": "Market Review Region",
+        "description": "Market region for review: cn (A-shares), us (US stocks), or both.",
+        "category": "system",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "cn",
+        "options": ["cn", "us", "both"],
+        "validation": {"enum": ["cn", "us", "both"]},
+        "display_order": 47,
+    },
+    "MAX_WORKERS": {
+        "title": "Max Workers",
+        "description": "Maximum concurrent analysis threads. Keep low to avoid API rate limits.",
+        "category": "system",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "3",
+        "options": [],
+        "validation": {"min": 1, "max": 20},
+        "display_order": 50,
+    },
+    "ANALYSIS_DELAY": {
+        "title": "Analysis Delay",
+        "description": "Delay in seconds between individual stock analyses (for API rate limiting).",
+        "category": "system",
+        "data_type": "number",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "0",
+        "options": [],
+        "validation": {"min": 0, "max": 60},
+        "display_order": 51,
+    },
+    "DEBUG": {
+        "title": "Debug Mode",
+        "description": "Enable debug mode with verbose logging.",
+        "category": "system",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 55,
+    },
+    "AGENT_MODE": {
+        "title": "Agent Mode",
+        "description": "Enable ReAct Agent for stock analysis.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 10,
+    },
+    "AGENT_MAX_STEPS": {
+        "title": "Agent Max Steps",
+        "description": f"Maximum reasoning-step limit for Agent mode. At the default ({AGENT_MAX_STEPS_DEFAULT}), each sub-agent keeps its own preset. When raised above {AGENT_MAX_STEPS_DEFAULT}, all sub-agents adopt this value. When lowered below a sub-agent's preset, that sub-agent is capped at this value.",
+        "category": "agent",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": str(AGENT_MAX_STEPS_DEFAULT),
+        "options": [],
+        "validation": {"min": 1, "max": 50},
+        "display_order": 20,
+    },
+    "AGENT_SKILLS": {
+        "title": "Agent Strategies",
+        "description": "Comma-separated list of active agent strategy skills. Leave empty to use the primary default strategy skill declared in metadata (built-in default: bull_trend). When set to specific skills (not 'all'), scheduled tasks will automatically use the Agent pipeline.",
+        "category": "agent",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "",
+        "options": [],
+        "validation": {},
+        "display_order": 30,
+    },
+    "AGENT_SKILL_DIR": {
+        "title": "Agent Strategy Dir",
+        "description": "Directory containing agent strategy-skill definition files (YAML or SKILL.md bundles).",
+        "category": "agent",
+        "data_type": "string",
+        "ui_control": "text",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "strategies",
+        "options": [],
+        "validation": {},
+        "display_order": 40,
+    },
+    "AGENT_NL_ROUTING": {
+        "title": "Agent NL Routing",
+        "description": "Enable natural-language routing in bot dispatcher. When on, high-confidence stock queries in private chat (or @mentions) are routed to the agent even without an explicit command.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 50,
+    },
+    "AGENT_ARCH": {
+        "title": "Agent Architecture",
+        "description": "Agent execution architecture. 'single' uses the classic ReAct executor; 'multi' uses the orchestrator pipeline with specialised sub-agents.",
+        "category": "agent",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "single",
+        "options": [
+            {"label": "Single Agent", "value": "single"},
+            {"label": "Multi Agent (Orchestrator)", "value": "multi"},
+        ],
+        "validation": {},
+        "display_order": 60,
+    },
+    "AGENT_ORCHESTRATOR_MODE": {
+        "title": "Orchestrator Mode",
+        "description": "Pipeline mode when AGENT_ARCH=multi. 'quick' (tech→decision), 'standard' (tech→intel→decision), 'full' (tech→intel→risk→decision), 'specialist' (full + per-strategy specialist agents).",
+        "category": "agent",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "standard",
+        "options": [
+            {"label": "Quick", "value": "quick"},
+            {"label": "Standard", "value": "standard"},
+            {"label": "Full", "value": "full"},
+            {"label": "Specialist", "value": "specialist"},
+        ],
+        "validation": {"enum": ["quick", "standard", "full", "specialist", "strategy", "skill"]},
+        "display_order": 61,
+    },
+    "AGENT_ORCHESTRATOR_TIMEOUT_S": {
+        "title": "Agent Timeout",
+        "description": "Shared timeout budget in seconds for Agent execution. Single-agent runs use it as the overall ReAct loop budget; multi-agent mode uses it as the cooperative pipeline budget. Set to 0 to disable.",
+        "category": "agent",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "600",
+        "options": [],
+        "validation": {"min": 0, "max": 3600},
+        "display_order": 62,
+    },
+    "AGENT_RISK_OVERRIDE": {
+        "title": "Risk Agent Override",
+        "description": "Allow the risk agent to veto buy signals when critical risk flags are detected.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 63,
+    },
+    "AGENT_DEEP_RESEARCH_BUDGET": {
+        "title": "Deep Research Token Budget",
+        "description": "Maximum token budget for Deep Research planning, follow-up research, and final synthesis.",
+        "category": "agent",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "30000",
+        "options": [],
+        "validation": {"min": 5000, "max": 100000},
+        "display_order": 64,
+    },
+    "AGENT_DEEP_RESEARCH_TIMEOUT": {
+        "title": "Deep Research Timeout",
+        "description": "Maximum seconds allowed for a Deep Research request before returning a timeout response.",
+        "category": "agent",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "180",
+        "options": [],
+        "validation": {"min": 30, "max": 600},
+        "display_order": 65,
+    },
+    "AGENT_MEMORY_ENABLED": {
+        "title": "Agent Memory",
+        "description": "Enable the memory & calibration system. Tracks prediction accuracy and adjusts agent confidence over time.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 66,
+    },
+    "AGENT_SKILL_AUTOWEIGHT": {
+        "title": "Auto-Weight Strategies",
+        "description": "Automatically weight strategy-skill opinions when performance signals are available.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "true",
+        "options": [],
+        "validation": {},
+        "display_order": 67,
+    },
+    "AGENT_SKILL_ROUTING": {
+        "title": "Strategy Routing",
+        "description": "Strategy-skill selection mode. 'auto' detects market regime and picks relevant skills; 'manual' uses AGENT_SKILLS list only.",
+        "category": "agent",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "auto",
+        "options": [
+            {"label": "Auto (Regime-based)", "value": "auto"},
+            {"label": "Manual (Use AGENT_SKILLS)", "value": "manual"},
+        ],
+        "validation": {},
+        "display_order": 68,
+    },
+    "AGENT_EVENT_MONITOR_ENABLED": {
+        "title": "Event Monitor",
+        "description": "Enable background Event Monitor polling in schedule mode.",
+        "category": "agent",
+        "data_type": "boolean",
+        "ui_control": "switch",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "false",
+        "options": [],
+        "validation": {},
+        "display_order": 69,
+    },
+    "AGENT_EVENT_MONITOR_INTERVAL_MINUTES": {
+        "title": "Event Monitor Interval",
+        "description": "Polling interval, in minutes, for background Event Monitor checks.",
+        "category": "agent",
+        "data_type": "integer",
+        "ui_control": "number",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "5",
+        "options": [],
+        "validation": {"min": 1, "max": 1440},
+        "display_order": 70,
+    },
+    "AGENT_EVENT_ALERT_RULES_JSON": {
+        "title": "Event Alert Rules",
+        "description": "JSON array of Event Monitor rules loaded by schedule mode for background alert polling.",
+        "category": "agent",
+        "data_type": "json",
+        "ui_control": "textarea",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "",
+        "options": [],
+        "validation": {},
+        "display_order": 71,
+    },
+}
+
+
+def get_category_definitions() -> List[Dict[str, Any]]:
+    """Return deep-copied category metadata."""
+    return deepcopy(_CATEGORY_DEFINITIONS)
+
+
+def get_registered_field_keys() -> List[str]:
+    """Return all explicitly registered keys."""
+    return list(_FIELD_DEFINITIONS.keys())
+
+
+def _extract_option_values(options: List[Any]) -> List[str]:
+    """Extract canonical option values from string/object style select options."""
+    values: List[str] = []
+    for option in options:
+        if isinstance(option, str):
+            values.append(option)
+            continue
+        if isinstance(option, dict):
+            value = option.get("value")
+            if isinstance(value, str) and value:
+                values.append(value)
+    return values
+
+
+def get_field_definition(key: str, value_hint: Optional[str] = None) -> Dict[str, Any]:
+    """Return field definition for key, including inferred fallback metadata."""
+    key_upper = key.upper()
+    if key_upper in _FIELD_DEFINITIONS:
+        field = deepcopy(_FIELD_DEFINITIONS[key_upper])
+        field["key"] = key_upper
+        validation = deepcopy(field.get("validation") or {})
+        option_values = _extract_option_values(field.get("options", []))
+        if field.get("ui_control") == "select" and option_values and "enum" not in validation:
+            validation["enum"] = option_values
+        field["validation"] = validation
+        return field
+
+    category = _infer_category(key_upper)
+    data_type = _infer_data_type(key_upper, value_hint)
+    field = {
+        "key": key_upper,
+        "title": key_upper.replace("_", " ").title(),
+        "description": "Auto-inferred field metadata.",
+        "category": category,
+        "data_type": data_type,
+        "ui_control": _infer_ui_control(data_type, key_upper),
+        "is_sensitive": _is_sensitive_key(key_upper),
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 9000,
+    }
+    return field
+
+
+def build_schema_response() -> Dict[str, Any]:
+    """Build schema payload grouped by category."""
+    category_map: Dict[str, Dict[str, Any]] = {}
+    for category in get_category_definitions():
+        category_map[category["category"]] = {**category, "fields": []}
+
+    for key in sorted(_FIELD_DEFINITIONS.keys()):
+        field = get_field_definition(key)
+        category_map[field["category"]]["fields"].append(field)
+
+    categories = sorted(category_map.values(), key=lambda item: item["display_order"])
+    for category in categories:
+        category["fields"] = sorted(
+            category["fields"],
+            key=lambda item: (item.get("display_order", 9999), item["key"]),
+        )
+
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "categories": categories,
+    }
+
+
+def _is_sensitive_key(key: str) -> bool:
+    markers = ("KEY", "TOKEN", "SECRET", "PASSWORD")
+    return any(marker in key for marker in markers)
+
+
+def _infer_category(key: str) -> str:
+    if key == "STOCK_LIST":
+        return "base"
+    if key.startswith(("TELEGRAM", "DISCORD", "SLACK")):
+        return "uncategorized"
+    if key.startswith("LLM_") or key in {"LITELLM_MODEL", "AGENT_LITELLM_MODEL", "LITELLM_FALLBACK_MODELS"}:
+        return "ai_model"
+    if key.startswith("REPORT_"):
+        return "analysis"
+    if key.endswith("_PRIORITY") or key.startswith(
+        (
+            "TUSHARE",
+            "TICKFLOW",
+            "AKSHARE",
+            "EFINANCE",
+            "PYTDX",
+            "BAOSTOCK",
+            "YFINANCE",
+            "TAVILY",
+            "SERPAPI",
+            "BRAVE",
+            "BOCHA",
+            "ANSPIRE",
+            "SEARXNG",
+            "NEWS_",
+            "BIAS_",
+        )
+    ) or key in ("ENABLE_REALTIME_QUOTE", "ENABLE_CHIP_DISTRIBUTION"):
+        return "data_source"
+    if key.startswith(("LOG_", "SCHEDULE_", "WEBUI_", "HTTP_", "HTTPS_", "MAX_", "DEBUG", "MARKET_REVIEW_", "TRADING_DAY_", "ANALYSIS_DELAY")):
+        return "system"
+    return "uncategorized"
+
+
+def _infer_data_type(key: str, value_hint: Optional[str]) -> str:
+    if key.endswith("_TIME"):
+        return "time"
+    if value_hint is None:
+        return "string"
+
+    lowered = value_hint.strip().lower()
+    if lowered in {"true", "false"}:
+        return "boolean"
+
+    try:
+        int(value_hint)
+        return "integer"
+    except (TypeError, ValueError):
+        pass
+
+    try:
+        float(value_hint)
+        return "number"
+    except (TypeError, ValueError):
+        pass
+
+    if key in {"STOCK_LIST", "EMAIL_RECEIVERS", "CUSTOM_WEBHOOK_URLS"}:
+        return "array"
+    return "string"
+
+
+def _infer_ui_control(data_type: str, key: str) -> str:
+    if _is_sensitive_key(key):
+        return "password"
+    if data_type == "boolean":
+        return "switch"
+    if data_type in {"integer", "number"}:
+        return "number"
+    if data_type == "time":
+        return "time"
+    if data_type == "array":
+        return "textarea"
+    return "text"

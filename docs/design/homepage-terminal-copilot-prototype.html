@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A_stock_AI 首页工作台原型</title>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --panel: #ffffff;
+      --panel-2: #f9fafb;
+      --panel-3: #eef2f3;
+      --ink: #172024;
+      --muted: #667279;
+      --soft: #8a969c;
+      --line: #dbe2e5;
+      --line-strong: #c5d0d5;
+      --blue: #1769e0;
+      --blue-2: #0d4fb2;
+      --cyan: #0a91a8;
+      --green: #15935b;
+      --red: #d04437;
+      --amber: #b7791f;
+      --slate: #29363d;
+      --shadow: 0 18px 48px rgba(23, 32, 36, 0.08);
+      --radius: 8px;
+      --radius-sm: 6px;
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 10px;
+      border-right: 1px solid var(--line);
+      background: #11191d;
+      color: #d6e0e4;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      background: #182429;
+      color: #f7fafb;
+      font-weight: 800;
+    }
+
+    .rail-nav {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .rail-button {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #9eaeb5;
+      cursor: pointer;
+    }
+
+    .rail-button svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .rail-button.active,
+    .rail-button:hover {
+      background: #223138;
+      color: #ffffff;
+    }
+
+    .rail-bottom {
+      display: grid;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(16px);
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .identity h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .identity p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .market-strip {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ticker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 134px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fbfcfc;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .ticker b {
+      color: var(--slate);
+      font-weight: 700;
+    }
+
+    .ticker .up {
+      color: var(--red);
+      font-weight: 760;
+    }
+
+    .ticker .down {
+      color: var(--green);
+      font-weight: 760;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fbfcfc;
+      color: var(--slate);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .dot.warn {
+      background: var(--amber);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 300px minmax(520px, 1fr) 340px;
+      gap: 18px;
+      min-height: 0;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .column {
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title {
+      min-width: 0;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .panel-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .search-card {
+      padding: 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .search-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .search-box {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .search-box input {
+      min-width: 0;
+      height: 42px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      background: #fbfcfc;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.11);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 34px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-2);
+    }
+
+    .btn-secondary {
+      border-color: var(--line-strong);
+      background: #ffffff;
+      color: var(--slate);
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .quick-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .quick {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: #fbfcfc;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .suggestions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .suggestion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-2);
+      cursor: pointer;
+    }
+
+    .suggestion:hover {
+      border-color: var(--blue);
+      background: #f5f9ff;
+    }
+
+    .suggestion strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .suggestion span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--panel-3);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pill.blue {
+      background: #e8f1ff;
+      color: var(--blue);
+    }
+
+    .pill.red {
+      background: #fff0ef;
+      color: var(--red);
+    }
+
+    .pill.green {
+      background: #eaf8f1;
+      color: var(--green);
+    }
+
+    .watchlist {
+      display: grid;
+      gap: 8px;
+    }
+
+    .watch-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fbfcfc;
+    }
+
+    .watch-item h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 740;
+    }
+
+    .watch-item p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .price {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price b {
+      display: block;
+      font-size: 13px;
+    }
+
+    .price span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .center {
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .workbench-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: 14px;
+    }
+
+    .hero-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 236px;
+      border-color: #c9d6dc;
+      background: #ffffff;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(23, 105, 224, 0.06), transparent 42%),
+        linear-gradient(#eef3f6 1px, transparent 1px),
+        linear-gradient(90deg, #eef3f6 1px, transparent 1px);
+      background-size: auto, 28px 28px, 28px 28px;
+      mask-image: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .hero-kicker {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero-title {
+      max-width: 620px;
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.18;
+      font-weight: 820;
+      letter-spacing: 0;
+    }
+
+    .hero-copy {
+      max-width: 660px;
+      margin: -6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .run-card {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .run-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .run-row b {
+      color: var(--ink);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-chart {
+      width: 100%;
+      height: 74px;
+    }
+
+    .pipeline {
+      display: grid;
+      gap: 9px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 26px 1fr auto;
+      align-items: center;
+      gap: 9px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fbfcfc;
+      font-size: 12px;
+    }
+
+    .step-icon {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--panel-3);
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .step.done .step-icon {
+      background: #eaf8f1;
+      color: var(--green);
+    }
+
+    .step.active {
+      border-color: rgba(23, 105, 224, 0.42);
+      background: #f5f9ff;
+    }
+
+    .step.active .step-icon {
+      background: #e8f1ff;
+      color: var(--blue);
+    }
+
+    .step h3 {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .step p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .progress {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--panel-3);
+    }
+
+    .progress span {
+      display: block;
+      width: 68%;
+      height: 100%;
+      background: var(--blue);
+    }
+
+    .report-card {
+      overflow: hidden;
+    }
+
+    .report-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfc;
+    }
+
+    .stock-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .stock-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .stock-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .score {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      border: 1px solid #cbd9df;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--blue);
+      font-size: 20px;
+      font-weight: 820;
+    }
+
+    .report-body {
+      display: grid;
+      grid-template-columns: 1fr 270px;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .summary-block {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .verdict {
+      padding: 13px;
+      border: 1px solid #d7e1e6;
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .verdict h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 780;
+    }
+
+    .verdict p {
+      margin: 0;
+      color: #3f4b51;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fbfcfc;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .metric b {
+      display: block;
+      margin-top: 7px;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: 5px;
+      color: var(--soft);
+      font-size: 11px;
+    }
+
+    .factor-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .factor {
+      display: grid;
+      grid-template-columns: 96px 1fr 38px;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--panel-3);
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      background: var(--blue);
+    }
+
+    .bar.red span {
+      background: var(--red);
+    }
+
+    .bar.green span {
+      background: var(--green);
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .note {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-2);
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-3);
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 5px;
+      padding: 6px 9px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(23, 32, 36, 0.08);
+    }
+
+    .agent-card {
+      min-height: 236px;
+    }
+
+    .agent-input {
+      display: grid;
+      gap: 10px;
+    }
+
+    .agent-input textarea {
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      outline: none;
+      background: #fbfcfc;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .agent-input textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.11);
+    }
+
+    .prompt-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .prompt {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 9px;
+      background: #fbfcfc;
+      color: #3f4b51;
+      cursor: pointer;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .prompt:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .source-row:last-child {
+      border-bottom: 0;
+    }
+
+    .source-row strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .source-row span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .history-table th {
+      color: var(--muted);
+      font-weight: 700;
+      background: #fbfcfc;
+    }
+
+    .history-table td {
+      color: #344148;
+    }
+
+    .history-table tr:hover td {
+      background: #f7fafb;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .mobile-top {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    @media (max-width: 1280px) {
+      .main {
+        grid-template-columns: 280px minmax(460px, 1fr);
+      }
+
+      .right {
+        display: none;
+      }
+
+      .market-strip {
+        justify-content: flex-start;
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 920px) {
+      .app {
+        display: block;
+      }
+
+      .rail,
+      .topbar {
+        display: none;
+      }
+
+      .mobile-top {
+        display: flex;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        padding: 12px;
+      }
+
+      .column,
+      .center {
+        overflow: visible;
+      }
+
+      .workbench-head,
+      .report-body {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero-title {
+        font-size: 22px;
+      }
+
+      .search-box {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .factor {
+        grid-template-columns: 78px 1fr 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-top">
+    <strong>A_stock_AI</strong>
+    <span class="status-chip"><span class="dot"></span> 本地服务在线</span>
+  </div>
+
+  <div class="app">
+    <aside class="rail" aria-label="主导航">
+      <div class="brand-mark">AI</div>
+      <nav class="rail-nav">
+        <button class="rail-button active" title="分析工作台" aria-label="分析工作台">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/></svg>
+        </button>
+        <button class="rail-button" title="问股 Agent" aria-label="问股 Agent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6h14M5 11h9M5 16h6"/><path d="M18 15.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2Z"/></svg>
+        </button>
+        <button class="rail-button" title="历史报告" aria-label="历史报告">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a2 2 0 0 1 2 2v16l-7-3-7 3V5a2 2 0 0 1 2-2Z"/></svg>
+        </button>
+        <button class="rail-button" title="系统设置" aria-label="系统设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.65V21a2 2 0 1 1-4 0v-.1A1.8 1.8 0 0 0 8.8 19.25a1.8 1.8 0 0 0-1.98.36l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.8 1.8 0 0 0 4.35 15a1.8 1.8 0 0 0-1.65-1.1H2.6a2 2 0 1 1 0-4h.1A1.8 1.8 0 0 0 4.35 8.8a1.8 1.8 0 0 0-.36-1.98l-.05-.05a2 2 0 0 1 2.83-2.83l.05.05A1.8 1.8 0 0 0 8.8 4.35a1.8 1.8 0 0 0 1.1-1.65V2.6a2 2 0 1 1 4 0v.1a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 1.98-.36l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.1h.1a2 2 0 1 1 0 4h-.1A1.8 1.8 0 0 0 19.4 15Z"/></svg>
+        </button>
+      </nav>
+      <div class="rail-bottom">
+        <button class="rail-button" title="明暗主题" aria-label="明暗主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="identity">
+          <div>
+            <h1>A_stock_AI 投研工作台</h1>
+            <p>核心分析链路 · 多数据源校验 · Agent 追问</p>
+          </div>
+        </div>
+        <div class="market-strip" aria-label="市场指数">
+          <div class="ticker"><b>上证指数</b><span>3098.42</span><span class="up">+0.72%</span></div>
+          <div class="ticker"><b>深证成指</b><span>10421.18</span><span class="down">-0.18%</span></div>
+          <div class="ticker"><b>创业板指</b><span>2194.65</span><span class="up">+1.04%</span></div>
+        </div>
+        <div class="top-actions">
+          <span class="status-chip"><span class="dot"></span> Gemini 已连接</span>
+          <span class="status-chip"><span class="dot warn"></span> 8/10 数据源可用</span>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="column left" aria-label="左侧分析入口">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>股票分析入口</h2>
+                <p>输入代码或名称，创建一次完整研究任务。</p>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="search-card">
+                <div class="search-label">
+                  <span>股票搜索</span>
+                  <span class="pill blue">A股优先</span>
+                </div>
+                <div class="search-box">
+                  <input id="stockInput" value="600519 贵州茅台" aria-label="股票搜索" />
+                  <button class="btn btn-primary">开始分析</button>
+                </div>
+                <div class="quick-row">
+                  <span class="quick">宁德时代</span>
+                  <span class="quick">招商银行</span>
+                  <span class="quick">中际旭创</span>
+                </div>
+                <div class="suggestions">
+                  <div class="suggestion">
+                    <div><strong>贵州茅台</strong><span>600519 · 白酒 · 沪市</span></div>
+                    <span class="pill red">+1.86%</span>
+                  </div>
+                  <div class="suggestion">
+                    <div><strong>茅台转债</strong><span>1100XX · 债券 · 相关标的</span></div>
+                    <span class="pill">低相关</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>关注股票</h2>
+                <p>适合保留最近研究对象和手动股票池。</p>
+              </div>
+            </div>
+            <div class="panel-body watchlist">
+              <div class="watch-item">
+                <div><h3>贵州茅台</h3><p>600519 · 最近分析 21:12</p></div>
+                <div class="price"><b>1736.50</b><span class="up">+1.86%</span></div>
+              </div>
+              <div class="watch-item">
+                <div><h3>宁德时代</h3><p>300750 · 资金净流入</p></div>
+                <div class="price"><b>204.18</b><span class="up">+2.44%</span></div>
+              </div>
+              <div class="watch-item">
+                <div><h3>招商银行</h3><p>600036 · 估值修复观察</p></div>
+                <div class="price"><b>38.41</b><span class="down">-0.32%</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="column center" aria-label="核心工作台">
+          <div class="workbench-head">
+            <section class="panel hero-panel">
+              <div class="hero-content">
+                <div class="hero-kicker">
+                  <span class="pill blue">工作台首页</span>
+                  <span>最后同步 21:48:12</span>
+                  <span>交易日 T+0 数据</span>
+                </div>
+                <h2 class="hero-title">先看清楚数据，再让 AI 完成深度投研判断。</h2>
+                <p class="hero-copy">
+                  首页聚焦一条主链路：选择股票、启动分析、观察任务、阅读摘要、继续追问。所有设置和数据源状态只作为辅助信号出现，不打断主任务。
+                </p>
+                <div class="hero-actions">
+                  <button class="btn btn-primary">分析当前股票</button>
+                  <button class="btn btn-secondary">打开最近报告</button>
+                  <button class="btn btn-ghost">进入问股 Agent</button>
+                </div>
+                <div class="run-card">
+                  <div class="run-row"><span>当前分析对象</span><b>600519 贵州茅台</b></div>
+                  <svg class="mini-chart" viewBox="0 0 680 90" preserveAspectRatio="none" aria-label="行情趋势图">
+                    <path d="M0 62 L44 58 L88 64 L132 49 L176 53 L220 44 L264 47 L308 35 L352 38 L396 32 L440 41 L484 28 L528 34 L572 23 L616 26 L680 18" fill="none" stroke="#d04437" stroke-width="3"/>
+                    <path d="M0 62 L44 58 L88 64 L132 49 L176 53 L220 44 L264 47 L308 35 L352 38 L396 32 L440 41 L484 28 L528 34 L572 23 L616 26 L680 18 L680 90 L0 90Z" fill="rgba(208,68,55,0.09)"/>
+                  </svg>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <h2>分析任务链路</h2>
+                  <p>让用户知道系统正在做什么。</p>
+                </div>
+                <span class="pill blue">68%</span>
+              </div>
+              <div class="panel-body pipeline">
+                <div class="progress"><span></span></div>
+                <div class="step done">
+                  <div class="step-icon">1</div>
+                  <div><h3>行情准备</h3><p>Tushare、AkShare 双源对照完成</p></div>
+                  <span class="pill green">完成</span>
+                </div>
+                <div class="step done">
+                  <div class="step-icon">2</div>
+                  <div><h3>新闻检索</h3><p>Tavily / Brave 返回 18 条有效新闻</p></div>
+                  <span class="pill green">完成</span>
+                </div>
+                <div class="step active">
+                  <div class="step-icon">3</div>
+                  <div><h3>LLM 生成</h3><p>Gemini 正在生成策略判断</p></div>
+                  <span class="pill blue">进行中</span>
+                </div>
+                <div class="step">
+                  <div class="step-icon">4</div>
+                  <div><h3>报告落库</h3><p>生成结构化报告和 Markdown</p></div>
+                  <span class="pill">等待</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel report-card">
+            <div class="report-toolbar">
+              <div class="stock-title">
+                <div class="score">82</div>
+                <div>
+                  <h2>贵州茅台 600519</h2>
+                  <p>结构化报告预览 · 技术面 / 基本面 / 资金面 / 新闻情报</p>
+                </div>
+              </div>
+              <div class="tabs" aria-label="报告视图">
+                <button class="tab active">摘要</button>
+                <button class="tab">技术</button>
+                <button class="tab">资金</button>
+                <button class="tab">新闻</button>
+              </div>
+            </div>
+            <div class="report-body">
+              <div class="summary-block">
+                <div class="verdict">
+                  <h3>AI 综合判断</h3>
+                  <p>
+                    当前价格处于中期震荡上沿，基本面稳定性仍强于行业平均，短线资金回流但持续性需要观察。
+                    适合纳入高质量核心资产观察池，不建议在单日放量后追高。
+                  </p>
+                </div>
+
+                <div class="metric-grid">
+                  <div class="metric"><span>综合评分</span><b>82/100</b><small>偏积极</small></div>
+                  <div class="metric"><span>趋势强度</span><b class="up">74</b><small>中短期改善</small></div>
+                  <div class="metric"><span>资金热度</span><b>68</b><small>温和流入</small></div>
+                  <div class="metric"><span>风险等级</span><b>中</b><small>估值约束</small></div>
+                </div>
+
+                <div class="verdict">
+                  <h3>关键因子</h3>
+                  <div class="factor-list">
+                    <div class="factor"><span>基本面质量</span><div class="bar"><span style="width:88%"></span></div><b>88</b></div>
+                    <div class="factor"><span>技术趋势</span><div class="bar red"><span style="width:74%"></span></div><b>74</b></div>
+                    <div class="factor"><span>资金一致性</span><div class="bar"><span style="width:68%"></span></div><b>68</b></div>
+                    <div class="factor"><span>新闻情绪</span><div class="bar green"><span style="width:61%"></span></div><b>61</b></div>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="side-stack">
+                <div class="note">
+                  <strong>主要机会</strong>
+                  <p>业绩确定性、品牌议价权和现金流质量仍是核心支撑。</p>
+                </div>
+                <div class="note">
+                  <strong>主要风险</strong>
+                  <p>估值修复已经部分兑现，短期波动取决于成交量持续性。</p>
+                </div>
+                <div class="note">
+                  <strong>建议追问</strong>
+                  <p>让 Agent 对比五粮液、泸州老窖的估值弹性和资金分歧。</p>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>最近报告</h2>
+                <p>历史记录不再像文件列表，而是作为研究延续入口。</p>
+              </div>
+              <button class="btn btn-secondary">批量管理</button>
+            </div>
+            <div style="overflow:auto">
+              <table class="history-table">
+                <thead>
+                  <tr><th>股票</th><th>时间</th><th>评分</th><th>结论</th><th>操作</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>贵州茅台</strong> <span class="mono">600519</span></td><td>今天 21:12</td><td>82</td><td><span class="pill blue">偏积极</span></td><td>打开 / 追问</td></tr>
+                  <tr><td><strong>宁德时代</strong> <span class="mono">300750</span></td><td>今天 19:36</td><td>78</td><td><span class="pill blue">观察</span></td><td>打开 / 追问</td></tr>
+                  <tr><td><strong>招商银行</strong> <span class="mono">600036</span></td><td>昨天 22:08</td><td>71</td><td><span class="pill">中性</span></td><td>打开 / 追问</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <aside class="column right" aria-label="右侧智能辅助">
+          <section class="panel agent-card">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>问股 Agent</h2>
+                <p>围绕当前股票或报告继续追问。</p>
+              </div>
+              <span class="pill blue">报告上下文已挂载</span>
+            </div>
+            <div class="panel-body">
+              <div class="agent-input">
+                <textarea aria-label="Agent 问题">帮我判断贵州茅台现在更适合继续观察还是分批介入？重点看资金面和估值约束。</textarea>
+                <button class="btn btn-primary">发送给 Agent</button>
+              </div>
+              <div class="prompt-list">
+                <button class="prompt">和五粮液相比，当前估值弹性谁更好？</button>
+                <button class="prompt">把风险因素按短中长期拆开。</button>
+                <button class="prompt">如果明天低开 2%，策略应该如何变化？</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>数据源一致性</h2>
+                <p>不用做独立数据质量面板，但在首页给到关键信号。</p>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="source-row">
+                <div><strong>行情数据</strong><span>Tushare / AkShare 差异 0.04%</span></div>
+                <span class="pill green">正常</span>
+              </div>
+              <div class="source-row">
+                <div><strong>新闻搜索</strong><span>Tavily 主用，Brave 兜底</span></div>
+                <span class="pill green">正常</span>
+              </div>
+              <div class="source-row">
+                <div><strong>模型通道</strong><span>Gemini 2.5 Flash · 880ms</span></div>
+                <span class="pill blue">已连接</span>
+              </div>
+              <div class="source-row">
+                <div><strong>报告保存</strong><span>SQLite WAL · 最近写入成功</span></div>
+                <span class="pill green">正常</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>今日研究队列</h2>
+                <p>任务少但状态必须清楚。</p>
+              </div>
+            </div>
+            <div class="panel-body pipeline">
+              <div class="step active">
+                <div class="step-icon">A</div>
+                <div><h3>贵州茅台</h3><p>LLM 生成中 · 预计 32 秒</p></div>
+                <span class="pill blue">运行</span>
+              </div>
+              <div class="step">
+                <div class="step-icon">B</div>
+                <div><h3>中际旭创</h3><p>排队等待 · 深度模式</p></div>
+                <span class="pill">等待</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
