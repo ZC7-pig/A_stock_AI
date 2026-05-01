@@ -59,7 +59,7 @@ LITELLM_MODEL=ollama/qwen3:8b
 > **重要**：Ollama 必须使用 `OLLAMA_API_BASE` 配置，**不要**使用 `OPENAI_BASE_URL`，否则系统会错误拼接 URL（如 404、`api/generate/api/show`）。远程 Ollama 时，将 `OLLAMA_API_BASE` 设为实际地址（如 `http://192.168.1.100:11434`）。当前依赖要求 LiteLLM ≥1.80.10（与 requirements.txt 一致）。
 
 > **恭喜！小白读到这里就可以去运行程序了！**
-> 想测测看通没通？在主目录打开命令行输入：`python test_env.py --llm`
+> 想测测看通没通？启动 Web UI 后，在“系统设置 -> AI 模型 -> AI 模型接入”里使用渠道测试功能。
 
 ---
 
@@ -127,7 +127,7 @@ LITELLM_MODEL=ollama/qwen3:8b
 - 因此本项目会在请求发出前按**实际请求模式**归一化 `kimi-k2.6` 及其 `kimi-k2.6-*` 变体：默认 / thinking 路径使用 `temperature=1.0`；如果你的 LiteLLM YAML 路由别名里显式写了 `litellm_params.extra_body.thinking.type: disabled`（或等价 non-thinking 配置），则自动切到 `temperature=0.6`。你在 `.env` 或 Web 设置里保存的 `LLM_TEMPERATURE` 不会被改写。
 - `SystemConfigService` 在 Web 设置保存时只更新你提交的 key，不会因为切到 Kimi 静默清空、迁移或重写已有 `LLM_TEMPERATURE`；渠道测试请求里临时使用的 `1.0/0.6` 也不会回写到配置文件。
 - 非 Kimi 主模型、非 Kimi fallback 以及切回普通模型后的请求，仍继续使用你配置的温度；也就是说旧配置无需迁移，切换模型即可自动恢复原行为。
-- 本仓库兼容性回归覆盖见：`tests/test_llm_channel_config.py`、`tests/test_market_analyzer_generate_text.py`、`tests/test_agent_pipeline.py`、`tests/test_system_config_service.py`。
+- 当前精简仓库已移除测试套件；修改该逻辑后请通过 Web 设置页渠道测试、主分析和 Agent 问股流程做人工验证。
 - 最小回滚方式：直接回退本次 Kimi 固定温度相关改动，无需单独迁移已有 `LLM_TEMPERATURE` 配置。
 
 > **致命避坑说明**：如果你启用了 `LLM_CHANNELS`，那么你直接写在外面的 `DEEPSEEK_API_KEY` 或 `OPENAI_API_KEY` 将**全部失效（系统一律无视）**！二者**选其一即可**，千万不要既写了新手模式又写了渠道模式结果产生冲突。
@@ -214,10 +214,9 @@ VISION_PROVIDER_PRIORITY=gemini,anthropic,openai
 
 ## 检测与排错 (Troubleshooting)
 
-配好了之后心惊胆战不知道对不对？在命令行（Terminal）里敲入下面代码帮你挂号问诊：
+配好了之后心惊胆战不知道对不对？建议直接启动 Web UI，在“系统设置 -> AI 模型 -> AI 模型接入”里测试对应渠道。
 
-- `python test_env.py --config` ：纯检测 `.env` 配置文件里的逻辑写得对不对，是不是少写了什么。（秒出结果，不调用网络，纯检查本地文本拼写）
-- `python test_env.py --llm` ：系统会真的发一句问候语给大模型，让你亲眼看到他的回答。这能彻底测出你的**网络通不通、账号有没有欠费**。
+也可以通过一次小范围分析做真实链路验证，例如只分析一只股票，确认模型请求、数据源和报告生成都正常。
 
 ### 常见踩坑答疑台
 

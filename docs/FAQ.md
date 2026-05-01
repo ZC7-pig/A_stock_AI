@@ -131,9 +131,9 @@ PROXY_PORT=10809
 
 系统按优先级只取一种：高级模型路由 YAML（`LITELLM_CONFIG`）> `LLM_CHANNELS` > legacy keys。但 YAML 仅在文件可正常解析且产出了有效 `model_list` 时才生效；如果 YAML 路径无效或内容为空，系统会自动回退到 `LLM_CHANNELS` 或 legacy keys。一旦某一层级实际生效，更低优先级的配置不参与解析。
 
-**Q: test_env 输出“未配置可用 AI 模型”怎么办？**
+**Q: 页面提示“未配置可用 AI 模型”怎么办？**
 
-默认先选一种服务商并填写对应 API Key；如果需要固定主模型，再补 `LITELLM_MODEL=provider/model`；如果要多模型切换，再配置 `LLM_CHANNELS` 或高级模型路由 YAML。运行 `python test_env.py --config` 校验配置，`python test_env.py --llm` 实际调用 API 测试。
+默认先选一种服务商并填写对应 API Key；如果需要固定主模型，再补 `LITELLM_MODEL=provider/model`；如果要多模型切换，再配置 `LLM_CHANNELS` 或高级模型路由 YAML。建议在 Web 设置页的 AI 模型接入区域测试渠道连通性。
 
 **Q: 如何同时使用多个模型（如 AIHubmix + DeepSeek + Gemini）？**
 
@@ -279,8 +279,8 @@ OPENAI_MODEL=deepseek-v4-flash
 **结论**：对 Docker 用户来说，**最权威的版本不是某个 Python 源文件常量，而是你实际使用的镜像 tag**。
 
 **为什么**：
-1. 仓库的 Docker 发布由 `.github/workflows/docker-publish.yml` 触发，只有推送 `v*.*.*` 形式的 Git tag（例如 `v3.12.0`）时才会生成对应发布镜像。
-2. 这意味着 Docker 镜像版本本质上跟随 **GitHub Release / Git tag**，而不是写死在 `main.py`、`server.py` 或其他后端源码里。
+1. Docker 镜像版本通常取决于你构建或拉取时使用的 tag。
+2. 它不是写死在 `main.py`、`server.py` 或其他后端源码里的。
 3. `apps/dsa-web/package.json` 里的 `version` 当前是占位值 `0.0.0`，WebUI “版本信息”卡片更适合用来确认静态资源是否已重建，不应当作 Docker 发布版本。
 
 **怎么查当前 Docker 版本**：

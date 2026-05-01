@@ -7,7 +7,7 @@
 ## 📁 项目结构
 
 ```
-daily_stock_analysis/
+A_stock_AI/
 ├── main.py              # 主程序入口
 ├── src/                 # 核心业务逻辑
 │   ├── analyzer.py      # AI 分析器
@@ -18,14 +18,12 @@ daily_stock_analysis/
 ├── api/                 # FastAPI 后端服务
 ├── apps/dsa-web/        # React 前端
 ├── docker/              # Docker 配置
-├── docs/                # 项目文档
-└── .github/workflows/   # GitHub Actions
+└── docs/                # 项目文档
 ```
 
 ## 📑 目录
 
 - [项目结构](#项目结构)
-- [GitHub Actions 详细配置](#github-actions-详细配置)
 - [环境变量完整列表](#环境变量完整列表)
 - [Docker 部署](#docker-部署)
 - [本地运行详细配置](#本地运行详细配置)
@@ -36,7 +34,9 @@ daily_stock_analysis/
 
 ---
 
-## GitHub Actions 详细配置
+## GitHub Actions 说明
+
+当前精简仓库已移除 `.github/workflows/`，不再内置 GitHub Actions 定时任务和发布流水线。下面的 Secrets 配置仍可作为环境变量参考；如需恢复 Actions，需要重新创建 workflow 文件。
 
 ### 1. Fork 本仓库
 
@@ -45,10 +45,6 @@ daily_stock_analysis/
 ### 2. 配置 Secrets
 
 进入你 Fork 的仓库 → `Settings` → `Secrets and variables` → `Actions` → `New repository secret`
-
-<div align="center">
-  <img src="../sources/secret_config.png" alt="GitHub Secrets 配置示意图" width="600">
-</div>
 
 #### AI 模型配置（二选一）
 
@@ -451,7 +447,7 @@ python main.py --workers 5            # 指定并发数
 
 ### GitHub Actions 定时
 
-编辑 `.github/workflows/daily_analysis.yml`:
+当前精简仓库未保留 `.github/workflows/daily_analysis.yml`。如需 GitHub Actions 定时运行，可自行创建 workflow，并参考以下 cron：
 
 ```yaml
 schedule:

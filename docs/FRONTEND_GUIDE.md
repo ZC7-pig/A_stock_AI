@@ -10,8 +10,6 @@
 - React Router
 - Zustand
 - Axios
-- Vitest + Testing Library
-- Playwright smoke（`npm run test:smoke`）
 
 ## 目录结构
 
@@ -79,33 +77,21 @@
 2. `agentChatStore` 管理会话、消息、completion badge。
 3. `api/agent.ts` 与后端 Agent SSE/API 交互。
 
-## 测试入口
+## 验证入口
 
-常用前端验证：
-
-```bash
-cd apps/dsa-web
-npm run test -- src/pages/__tests__/HomePage.test.tsx
-npm run test -- src/components/history/__tests__/HistoryList.test.tsx
-npm run test -- src/components/report/__tests__/ReportOverview.test.tsx
-npm run build
-```
-
-完整前端验证：
+当前仓库已删除前端测试套件。常用前端验证：
 
 ```bash
 cd apps/dsa-web
 npm run lint
-npm run test
 npm run build
 ```
 
-视觉改动建议额外做 1440x960 light/dark 截图。后端未启动时，可用 Playwright route mock `/api/v1/*` 响应。
+视觉改动建议额外打开浏览器检查 1440x960 light/dark 效果。后端未启动时，先确认页面空态不会遮挡或崩溃。
 
 ## 常见坑
 
 - `npm run build` 会输出到项目根 `static/`，这是构建产物，不应作为源码维护。
 - `src/index.css` 里有历史 token 和 V4 token 并存；新视觉优先改 V4 区域，避免全局破坏旧页面。
 - `next-themes` 默认主题为 dark；截图验证要覆盖 light/dark。
-- `StockAutocomplete` 在测试环境可能因 `/stocks.index.json` URL 解析失败降级到 fallback input，这是已知测试环境行为。
-- 不要把设计原型 HTML 直接复制进生产组件，先提炼 token、布局和组件行为。
+- 不要重新加入设计原型 HTML；视觉方案应直接沉淀为生产组件、token 和样式。

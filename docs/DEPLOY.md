@@ -400,38 +400,22 @@ git push -u origin main
 | `TUSHARE_TOKEN` | Tushare Token | 可选 |
 | `GEMINI_MODEL` | 模型名称（默认 gemini-2.0-flash） | 可选 |
 
-#### 3. 验证 Workflow 文件
+#### 3. GitHub Actions 说明
 
-确保 `.github/workflows/daily_analysis.yml` 文件存在且已提交：
+当前精简仓库已移除 `.github/workflows/`，不再内置 GitHub Actions 定时任务。如需使用 Actions，请自行创建 workflow 文件并提交。
 
-```bash
-git add .github/workflows/daily_analysis.yml
-git commit -m "Add GitHub Actions workflow"
-git push
-```
+#### 4. 手动运行说明
 
-#### 4. 手动测试运行
-
-1. 打开仓库页面 → **Actions** 标签
-2. 选择 **"每日股票分析"** workflow
-3. 点击 **"Run workflow"** 按钮
-4. 选择运行模式：
+如自行恢复 GitHub Actions，可在 workflow 中提供运行模式：
    - `full` - 完整分析（股票+大盘）
    - `market-only` - 仅大盘复盘
    - `stocks-only` - 仅股票分析
-5. 点击绿色 **"Run workflow"** 按钮
-
-#### 5. 查看执行日志
-
-- Actions 页面可以看到运行历史
-- 点击具体的运行记录查看详细日志
-- 分析报告会作为 Artifact 保存 30 天
 
 ### 定时说明
 
-默认配置：**周一到周五，北京时间 18:00** 自动执行
+如需定时运行，可参考默认配置：**周一到周五，北京时间 18:00**。
 
-修改时间：编辑 `.github/workflows/daily_analysis.yml` 中的 cron 表达式：
+cron 表达式示例：
 
 ```yaml
 schedule:

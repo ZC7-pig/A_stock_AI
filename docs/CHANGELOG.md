@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-> For user-friendly release highlights, see the [GitHub Releases](https://github.com/ZhuLinsen/daily_stock_analysis/releases) page.
+> 当前仓库是 `A_stock_AI` 二次开发版本，历史条目可能保留原始项目记录。
 
 ## [Unreleased]
 
@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - [文档] 新增 agent 交接入口、前端开发与设计指南、中文文档索引和 Web 设计资产说明，方便后续 AI agent 快速理解项目并继续开发
 - [chore] 清理本地缓存、系统文件、日志和前端构建产物，减少后续开发阅读噪音
 - [修复] Web 前端依赖锁文件升级到安全补丁版本，消除 npm audit 报告的 axios、Vite、PostCSS、Rollup 等 10 个漏洞提示
+- [chore] 精简仓库结构，移除测试、CI、历史设计原型、Claude/Superpowers 工作流、大体积素材源文件和本地依赖缓存，并同步更新入口文档
 
 ## [3.13.0] - 2026-04-21
 
